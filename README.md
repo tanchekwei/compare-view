@@ -8,4 +8,4 @@ This will save you time if you are frequently open 2 new files and right-click o
 
 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd>, which brings up the Command Palette, and search for Create Compare View command.
 
-![Create Compare View](images/compare-view.gif)
+![Create Compare View](https://i.imgur.com/7FKTtxt.gif)
