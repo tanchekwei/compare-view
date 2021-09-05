@@ -10,14 +10,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:compare-view.helloWorld"
+		"onCommand:compare-view.compareView"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "compare-view.helloWorld",
-				"title": "Hello World"
+				"command": "compare-view.compareView",
+				"title": "Create Compare View"
 			}
 		]
 	},
