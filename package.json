@@ -1,9 +1,10 @@
 {
 	"publisher": "chekweitan",
 	"name": "compare-view",
-	"displayName": "compare-view",
+	"displayName": "Compare View",
 	"description": "Create a compare view",
 	"version": "0.0.1",
+	"icon": "compare-view.png",
 	"engines": {
 		"vscode": "^1.60.0"
 	},
