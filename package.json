@@ -3,7 +3,7 @@
 	"name": "compare-view",
 	"displayName": "Compare View",
 	"description": "Create a compare view",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"icon": "compare-view.png",
 	"engines": {
 		"vscode": "^1.60.0"
