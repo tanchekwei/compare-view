@@ -1,11 +1,12 @@
 # Compare View
 
-A simple extension to open compare view in untitled files to paste in any text to compare.
+A simple extension to create two untitled files in compare view to paste in text to compare.
 
-This will save you time if you are frequently open 2 new files and right-click one and select 'Select for Compare' then right-click another and select 'Compare with Selected'
+Instead of open two files, click on `Select for Compare` and `Compare with Selected`,
 
-## Features
-
-<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd>, which brings up the Command Palette, and search for Create Compare View command.
+You can use this extension to achieve the same result without going through the clicking. 😃
 
 ![Create Compare View](https://i.imgur.com/7FKTtxt.gif)
+## Features
+
+`Ctrl + Shift + P`, which brings up the Command Palette, and search for `Create Compare View` command.
