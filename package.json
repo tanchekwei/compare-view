@@ -5,6 +5,10 @@
 	"description": "Create a compare view",
 	"version": "0.1.0",
 	"icon": "compare-view.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tanchekwei/compare-view"
+	},
 	"engines": {
 		"vscode": "^1.60.0"
 	},
