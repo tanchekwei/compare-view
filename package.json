@@ -2,7 +2,7 @@
 	"publisher": "chekweitan",
 	"name": "compare-view",
 	"displayName": "Compare View",
-	"description": "Create a compare view",
+	"description": "Create compare view",
 	"version": "0.1.0",
 	"icon": "compare-view.png",
 	"repository": {
