@@ -18,6 +18,7 @@
 	"activationEvents": [
 		"onCommand:compare-view.compareView"
 	],
+	"browser": "./dist/extension.js",
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
