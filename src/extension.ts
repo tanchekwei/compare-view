@@ -1,86 +1,72 @@
-import * as vscode from "vscode";
-const name = "Compare View";
-const tabLabelRegex = /^\bCompare View \b\d+$/;
-const diffViewLabelRegex = /^\bCompare View \b\d+\b ↔ \b\bCompare View \b\d+$/;
-const viewCountRegex = /(?<=Compare View )\d+/g;
-let count: number;
+import { window, commands, ExtensionContext, Uri } from "vscode";
+const fileName = "Compare View ";
+const untitledScheme = "untitled";
+const compareViewLabelRegex = new RegExp(
+  `^\\b${fileName}\\b\\d+\\b ↔ ${fileName}\\b\\d+$`
+);
+const viewCountRegex = new RegExp(`(?<=\\b${fileName}\\b)\\d+`, "g");
+const singleViewLabelRegex = new RegExp(`\\b${fileName}\\b\\d+$`, "g");
+let count: number = 0;
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: ExtensionContext) {
   updateViewCount();
   subscribeCloseEvent();
   context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "compare-view.compareView",
-      createCompareView
-    )
+    commands.registerCommand("compare-view.compareView", createCompareView)
   );
 }
 
 const createCompareView = () => {
-  let first = vscode.Uri.parse(`untitled:/${name} ${++count}`);
-  vscode.commands.executeCommand("vscode.open", first);
-  vscode.commands.executeCommand(
+  commands.executeCommand(
     "vscode.diff",
-    first,
-    vscode.Uri.parse(`untitled:/${name} ${++count}`)
+    Uri.parse(`${untitledScheme}:/${fileName}${++count}`),
+    Uri.parse(`${untitledScheme}:/${fileName}${++count}`)
   );
 };
 
 const updateViewCount = () => {
-  const labels = vscode.window.tabGroups.all
+  window.tabGroups.all
     .flatMap(({ tabs }) => tabs)
     .filter((tab) => {
-      return diffViewLabelRegex.test(tab.label);
+      return singleViewLabelRegex.test(tab.label);
     })
-    .map((tab) => tab.label);
-  if (labels && labels.length > 0) {
-    let nums: number[] = [];
-    labels.forEach((label) => {
-      label.match(/\d+/g)?.forEach((v) => {
-        nums.push(Number(v));
+    .map((tab) => tab.label)
+    .forEach((label) => {
+      label.match(viewCountRegex)?.forEach((viewCount) => {
+        count = Math.max(count, parseInt(viewCount));
       });
-    });
-    count = Math.max.apply(null, nums);
-  } else {
-    count = 0;
-  }
-};
-
-const closeCompareView = (path: string) => {
-  vscode.window.tabGroups.all
-    .flatMap(({ tabs }) => tabs)
-    .forEach((tab) => {
-      if (tab.input!.constructor.name === "pi") {
-        if (((tab.input as any).uri! as vscode.Uri).path === path) {
-          vscode.window.tabGroups.close(tab);
-        }
-      }
     });
 };
 
 const subscribeCloseEvent = () => {
-  vscode.window.tabGroups.onDidChangeTabs((e) => {
-    const compareViewClosed = e.closed.filter((tab) => {
-      return diffViewLabelRegex.test(tab.label);
-    });
-
-    compareViewClosed.forEach((view) => {
-      const viewCounts = view.label.match(viewCountRegex);
-      if (viewCounts) {
-        const tabs = vscode.window.tabGroups.all.flatMap(({ tabs }) => tabs)
-        viewCounts.forEach((viewCount) => {
-          tabs.forEach((tab) => {
-            if (tab.input!.constructor.name === "pi") {
-              if (((tab.input as any).uri! as vscode.Uri).path === `/${name} ${viewCount}`) {
-                vscode.window.tabGroups.close(tab);
-              }
-            }
+  window.tabGroups.onDidChangeTabs((e) => {
+    e.closed
+      .filter((tab) => {
+        return (
+          tab.input!.constructor.name === "vi" &&
+          compareViewLabelRegex.test(tab.label)
+        );
+      })
+      .forEach((tab) => {
+        const closedTarget: string[] = [];
+        tab.label.match(viewCountRegex)?.forEach((count) => {
+          closedTarget.push(`/${fileName}${count}`);
+        });
+        if (closedTarget.length === 0) {
+          return;
+        }
+        window.tabGroups.all
+          .flatMap(({ tabs }) => tabs)
+          .filter((tab) => {
+            return (
+              tab.input!.constructor.name === "pi" &&
+              ((tab.input as any).uri! as Uri).scheme === untitledScheme &&
+              closedTarget.includes(((tab.input as any).uri! as Uri).path)
+            );
           })
-        })
-      }
-      // view.label.match(viewCountRegex)?.forEach((match) => {
-      //   closeCompareView(`/${name} ${match}`);
-      // });
-    });
+          .forEach((tab) => {
+            window.tabGroups.close(tab);
+          });
+      });
   });
 };
