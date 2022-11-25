@@ -1,38 +1,67 @@
-import { window, commands, ExtensionContext, Uri } from "vscode";
-const fileName = "Compare View ";
-const untitledScheme = "untitled";
-const compareViewLabelRegex = new RegExp(
-  `^\\b${fileName}\\b\\d+\\b ↔ ${fileName}\\b\\d+$`
+import {
+  window,
+  commands,
+  ExtensionContext,
+  Uri,
+  workspace,
+  Tab,
+  TabInputTextDiff,
+  TabInputText,
+} from "vscode";
+const name = "Compare View ";
+const arrow = " ↔ ";
+const scheme = "untitled";
+const section = "compareView";
+const tabNoRegex = new RegExp(`(?<=\\b${name}\\b)\\d+`, "g");
+const compareViewTabPathRegex = new RegExp(`\\/\\b${name}\\b\\d+$`); // do not set global flag, to prevent lastIndex being set
+const compareViewDiffTabLabelRegex = new RegExp(
+  `^\\b${name}\\b\\d+\\b${arrow}${name}\\b\\d+$`
 );
-const viewCountRegex = new RegExp(`(?<=\\b${fileName}\\b)\\d+`, "g");
-const singleViewLabelRegex = new RegExp(`\\b${fileName}\\b\\d+$`, "g");
 let count: number = 0;
+let closeRelatedTab: boolean = false;
 
 export function activate(context: ExtensionContext) {
-  updateViewCount();
-  subscribeCloseEvent();
   context.subscriptions.push(
     commands.registerCommand("compare-view.compareView", createCompareView)
   );
+  initCount();
+  setConfiguration();
+  subscribeCloseEvent();
+  subscribeConfigChangedEvent();
 }
 
 const createCompareView = () => {
   commands.executeCommand(
     "vscode.diff",
-    Uri.parse(`${untitledScheme}:/${fileName}${++count}`),
-    Uri.parse(`${untitledScheme}:/${fileName}${++count}`)
+    Uri.parse(`${scheme}:/${name}${++count}`),
+    Uri.parse(`${scheme}:/${name}${++count}`),
+    `${name}${count - 1}${arrow}${name}${count}`
   );
 };
 
-const updateViewCount = () => {
+const setConfiguration = () => {
+  closeRelatedTab = workspace
+    .getConfiguration(section)
+    .get("closeRelatedTab") as boolean;
+};
+
+const subscribeConfigChangedEvent = () => {
+  workspace.onDidChangeConfiguration((e) => {
+    if (e.affectsConfiguration(section)) {
+      setConfiguration();
+    }
+  });
+};
+
+const initCount = () => {
   window.tabGroups.all
     .flatMap(({ tabs }) => tabs)
     .filter((tab) => {
-      return singleViewLabelRegex.test(tab.label);
+      return isCompareViewTab(tab) || isCompareViewDiffTab(tab);
     })
     .map((tab) => tab.label)
     .forEach((label) => {
-      label.match(viewCountRegex)?.forEach((viewCount) => {
+      label.match(tabNoRegex)?.forEach((viewCount) => {
         count = Math.max(count, parseInt(viewCount));
       });
     });
@@ -40,28 +69,27 @@ const updateViewCount = () => {
 
 const subscribeCloseEvent = () => {
   window.tabGroups.onDidChangeTabs((e) => {
+    if (e.closed.length === 0 || !closeRelatedTab) {
+      return;
+    }
     e.closed
       .filter((tab) => {
-        return (
-          tab.input!.constructor.name === "vi" &&
-          compareViewLabelRegex.test(tab.label)
-        );
+        return isCompareViewDiffTab(tab);
       })
       .forEach((tab) => {
-        const closedTarget: string[] = [];
-        tab.label.match(viewCountRegex)?.forEach((count) => {
-          closedTarget.push(`/${fileName}${count}`);
+        const tabToClose: string[] = [];
+        tab.label.match(tabNoRegex)?.forEach((count) => {
+          tabToClose.push(`/${name}${count}`);
         });
-        if (closedTarget.length === 0) {
+        if (tabToClose.length === 0) {
           return;
         }
         window.tabGroups.all
           .flatMap(({ tabs }) => tabs)
           .filter((tab) => {
             return (
-              tab.input!.constructor.name === "pi" &&
-              ((tab.input as any).uri! as Uri).scheme === untitledScheme &&
-              closedTarget.includes(((tab.input as any).uri! as Uri).path)
+              isCompareViewTab(tab) &&
+              tabToClose.includes(((tab.input as any).uri! as Uri).path)
             );
           })
           .forEach((tab) => {
@@ -69,4 +97,19 @@ const subscribeCloseEvent = () => {
           });
       });
   });
+};
+
+const isCompareViewDiffTab = (tab: Tab): boolean => {
+  return (
+    tab.input instanceof TabInputTextDiff &&
+    compareViewDiffTabLabelRegex.test(tab.label)
+  );
+};
+
+const isCompareViewTab = (tab: Tab): boolean => {
+  return (
+    tab.input instanceof TabInputText &&
+    tab.input.uri.scheme === scheme &&
+    compareViewTabPathRegex.test(tab.input.uri.path)
+  );
 };
