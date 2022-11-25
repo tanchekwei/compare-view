@@ -47,7 +47,8 @@
 		"test-watch": "tsc -watch -p ./",
 		"pretest": "npm run test-compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"open-in-browser-windows": "vscode-test-web --extensionDevelopmentPath=%INIT_CWD%"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.2.0",
@@ -56,6 +57,7 @@
 		"@types/vscode": "^1.67.0",
 		"@typescript-eslint/eslint-plugin": "^4.33.0",
 		"@typescript-eslint/parser": "^4.33.0",
+		"@vscode/test-web": "^0.0.32",
 		"eslint": "^7.27.0",
 		"glob": "^7.2.3",
 		"mocha": "^10.1.0",
