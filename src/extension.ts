@@ -1,32 +1,115 @@
-import * as vscode from "vscode";
-import { Tab } from "vscode";
-const name = "Compare View";
-const tabRegex = /\bCompare View \b\d+\b ↔ \b\bCompare View \b\d+/;
-export function activate(context: vscode.ExtensionContext) {
-  let count: number;
-  const labels = vscode.window.tabGroups.all.flatMap(({ tabs }) => tabs)
-    .filter((tab) => {
-      return tabRegex.test(tab.label);
-    })
-    .map((tab) => tab.label);
-  if (labels && labels.length > 0) {
-    let nums: number[] = [];
-    labels.forEach(label => {
-      label.match(/\d+/g)?.forEach(v => { nums.push(Number(v)); });
-    });
-    count = Math.max.apply(null, nums);
-  } else {
-    count = 0;
-  }
-  let disposable = vscode.commands.registerCommand(
-    "compare-view.compareView",
-    () => {
-      vscode.commands.executeCommand(
-        "vscode.diff",
-        vscode.Uri.parse(`untitled:/${name} ${++count}`),
-        vscode.Uri.parse(`untitled:/${name} ${++count}`)
-      );
-    }
+import {
+  window,
+  commands,
+  ExtensionContext,
+  Uri,
+  workspace,
+  Tab,
+  TabInputTextDiff,
+  TabInputText,
+} from "vscode";
+const name = "Compare View ";
+const arrow = " ↔ ";
+const scheme = "untitled";
+const section = "compareView";
+const tabNoRegex = new RegExp(`(?<=\\b${name}\\b)\\d+`, "g");
+const compareViewTabPathRegex = new RegExp(`\\/\\b${name}\\b\\d+$`); // do not set global flag, to prevent lastIndex being set
+const compareViewDiffTabLabelRegex = new RegExp(
+  `^\\b${name}\\b\\d+\\b${arrow}${name}\\b\\d+$`
+);
+let count: number = 0;
+let closeRelatedTab: boolean = false;
+
+export function activate(context: ExtensionContext) {
+  context.subscriptions.push(
+    commands.registerCommand("compare-view.compareView", createCompareView)
   );
-  context.subscriptions.push(disposable);
+  initCount();
+  setConfiguration();
+  subscribeCloseEvent();
+  subscribeConfigChangedEvent();
 }
+
+const createCompareView = () => {
+  commands.executeCommand(
+    "vscode.diff",
+    Uri.parse(`${scheme}:/${name}${++count}`),
+    Uri.parse(`${scheme}:/${name}${++count}`),
+    `${name}${count - 1}${arrow}${name}${count}`
+  );
+};
+
+const setConfiguration = () => {
+  closeRelatedTab = workspace
+    .getConfiguration(section)
+    .get("closeRelatedTab") as boolean;
+};
+
+const subscribeConfigChangedEvent = () => {
+  workspace.onDidChangeConfiguration((e) => {
+    if (e.affectsConfiguration(section)) {
+      setConfiguration();
+    }
+  });
+};
+
+const initCount = () => {
+  window.tabGroups.all
+    .flatMap(({ tabs }) => tabs)
+    .filter((tab) => {
+      return isCompareViewTab(tab) || isCompareViewDiffTab(tab);
+    })
+    .map((tab) => tab.label)
+    .forEach((label) => {
+      label.match(tabNoRegex)?.forEach((viewCount) => {
+        count = Math.max(count, parseInt(viewCount));
+      });
+    });
+};
+
+const subscribeCloseEvent = () => {
+  window.tabGroups.onDidChangeTabs((e) => {
+    if (e.closed.length === 0 || !closeRelatedTab) {
+      return;
+    }
+    e.closed
+      .filter((tab) => {
+        return isCompareViewDiffTab(tab);
+      })
+      .forEach((tab) => {
+        const tabToClose: string[] = [];
+        tab.label.match(tabNoRegex)?.forEach((count) => {
+          tabToClose.push(`/${name}${count}`);
+        });
+        if (tabToClose.length === 0) {
+          return;
+        }
+        window.tabGroups.all
+          .flatMap(({ tabs }) => tabs)
+          .filter((tab) => {
+            return (
+              isCompareViewTab(tab) &&
+              tabToClose.includes(((tab.input as any).uri! as Uri).path)
+            );
+          })
+          .forEach((tab) => {
+            window.tabGroups.close(tab);
+          });
+      });
+  });
+};
+
+const isCompareViewDiffTab = (tab: Tab): boolean => {
+  return (
+    tab.input instanceof TabInputTextDiff &&
+    compareViewDiffTabLabelRegex.test(tab.label)
+  );
+};
+
+const isCompareViewTab = (tab: Tab): boolean => {
+  return (
+    tab.input instanceof TabInputText &&
+    tab.input.uri.scheme === scheme &&
+    compareViewTabPathRegex.test(tab.input.uri.path)
+  );
+};

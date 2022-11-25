@@ -1,12 +1,14 @@
 # Compare View
 
-A simple extension to create two untitled files in compare view to paste in text to compare.
-
-Instead of open two files, click on `Select for Compare` and `Compare with Selected`,
-
-You can use this extension to achieve the same result without going through the clicking. 😃
+A simple extension to create two untitled files in compare view / diff view to paste in text for comparing, a shortcut to open two untitled files, click on `Select for Compare` and `Compare with Selected`.
 
 ![Create Compare View](https://i.imgur.com/7FKTtxt.gif)
 ## Features
 
-`Ctrl + Shift + P`, which brings up the Command Palette, and search for `Create Compare View` command.
+`Ctrl + Shift + P` - which brings up the Command Palette, and search for `Create Compare View` command.
+
+## Setting
+
+`compareView.closeRelatedView` - Controls whether to close related tab after compare view tab / diff tab is closed. ([#2][#2])
+
+[#2]: https://github.com/tanchekwei/compare-view/issues/2
