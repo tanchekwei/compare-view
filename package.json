@@ -16,6 +16,7 @@
 		"Other"
 	],
 	"activationEvents": [
+		"onStartupFinished",
 		"onCommand:compare-view.compareView"
 	],
 	"browser": "./dist/extension.js",
