@@ -31,12 +31,20 @@ export function activate(context: ExtensionContext) {
 }
 
 const createCompareView = () => {
-  commands.executeCommand(
-    "vscode.diff",
-    Uri.parse(`${scheme}:/${name}${++count}`),
-    Uri.parse(`${scheme}:/${name}${++count}`),
-    `${name}${count - 1}${arrow}${name}${count}`
-  );
+  const leftName = `${name}${++count}`;
+  const leftUri = Uri.parse(`${scheme}:/${leftName}`);
+  const rightName = `${name}${++count}`;
+  const rightUri = Uri.parse(`${scheme}:/${rightName}`);
+  window
+    .showTextDocument(rightUri)
+    .then(() =>
+      commands.executeCommand(
+        "vscode.diff",
+        leftUri,
+        rightUri,
+        `${leftName}${arrow}${rightName}`
+      )
+    );
 };
 
 const setConfiguration = () => {
