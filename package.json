@@ -35,6 +35,11 @@
 					"type": "boolean",
 					"default": false,
 					"markdownDescription": "Controls whether to close related tab after compare view tab / diff tab is closed."
+				},
+				"compareView.undoRelatedTabChanges": {
+					"type": "boolean",
+					"default": false,
+					"markdownDescription": "DISCLAIMER: The design decision of prompting user to save changes before closing file is to prioritizes data preservation and prevents accidental loss of work. You can enable this setting to undo related tab changes after compare view tab / diff tab is closed to skip a confirmation dialog. This can save yourself from clicking Don't Save button for 1 time. LOL. Require closeRelatedTab setting enabled."
 				}
 			}
 		}

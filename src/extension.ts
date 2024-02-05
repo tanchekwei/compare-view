@@ -17,8 +17,10 @@ const compareViewTabPathRegex = new RegExp(`\\/\\b${name}\\b\\d+$`); // do not s
 const compareViewDiffTabLabelRegex = new RegExp(
   `^\\b${name}\\b\\d+\\b${arrow}${name}\\b\\d+$`
 );
+const MAX_UNDO_LOOP_COUNT = 100;
 let count: number = 0;
 let closeRelatedTab: boolean = false;
+let undoRelatedTabChanges: boolean = false;
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -51,6 +53,9 @@ const setConfiguration = () => {
   closeRelatedTab = workspace
     .getConfiguration(section)
     .get("closeRelatedTab") as boolean;
+  undoRelatedTabChanges = workspace
+    .getConfiguration(section)
+    .get("undoRelatedTabChanges") as boolean;
 };
 
 const subscribeConfigChangedEvent = () => {
@@ -100,7 +105,15 @@ const subscribeCloseEvent = () => {
               tabToClose.includes(((tab.input as any).uri! as Uri).path)
             );
           })
-          .forEach((tab) => {
+          .forEach(async (tab) => {
+            if (undoRelatedTabChanges) {
+              await window.showTextDocument((tab.input as TabInputText).uri);
+              let count = 0;
+              while (tab.isDirty && count < MAX_UNDO_LOOP_COUNT) {
+                await commands.executeCommand("undo");
+                count++;
+              }
+            }
             window.tabGroups.close(tab);
           });
       });
