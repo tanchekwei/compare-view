@@ -85,19 +85,17 @@ const subscribeCloseEvent = () => {
         return isCompareViewDiffTab(tab);
       })
       .forEach((tab) => {
-        const tabToClose: string[] = [];
-        tab.label.match(tabNoRegex)?.forEach((count) => {
-          tabToClose.push(`/${name}${count}`);
-        });
-        if (tabToClose.length === 0) {
-          return;
-        }
+        const tabInputTextDiff = tab.input as TabInputTextDiff;
+        const tabsToClose: string[] = [
+          tabInputTextDiff.original.path,
+          tabInputTextDiff.modified.path,
+        ];
         window.tabGroups.all
           .flatMap(({ tabs }) => tabs)
           .filter((tab) => {
             return (
               isCompareViewTab(tab) &&
-              tabToClose.includes(((tab.input as any).uri! as Uri).path)
+              tabsToClose.includes(((tab.input as any).uri! as Uri).path)
             );
           })
           .forEach((tab) => {
