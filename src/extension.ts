@@ -1,12 +1,12 @@
 import {
-  window,
-  commands,
   ExtensionContext,
-  Uri,
-  workspace,
   Tab,
-  TabInputTextDiff,
   TabInputText,
+  TabInputTextDiff,
+  Uri,
+  commands,
+  window,
+  workspace,
 } from "vscode";
 const name = "Compare View ";
 const arrow = " ↔ ";
