@@ -3,7 +3,7 @@
   "name": "compare-view",
   "displayName": "Compare View",
   "description": "Create compare view",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "icon": "compare-view.png",
   "repository": {
     "type": "git",
