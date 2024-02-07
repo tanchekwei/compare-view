@@ -11,4 +11,6 @@ A simple extension to create two untitled files in compare view / diff view to p
 
 `compareView.closeRelatedView` - Controls whether to close related tab after compare view tab / diff tab is closed. ([#2][#2])
 
+`compareView.focusLeftSide` - Set focus to the left side compare view automatically upon creation.
+
 [#2]: https://github.com/tanchekwei/compare-view/issues/2
