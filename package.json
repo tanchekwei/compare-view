@@ -34,12 +34,12 @@
         "compareView.closeRelatedTab": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Controls whether to close related tab after compare view tab / diff tab is closed."
+          "markdownDescription": "Controls whether the extension will try to automatically close the related tab after the compare view is closed. Visual Studio Code will prompt the user to save or discard changes before allowing the tab to close. The extension cannot override this prompt."
         },
         "compareView.focusLeftSide": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Set focus to the left side compare view automatically upon creation."
+          "markdownDescription": "Automatically sets the focus to the left side of the compare view when the compare view is created."
         }
       }
     }
