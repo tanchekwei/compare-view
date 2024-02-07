@@ -19,6 +19,7 @@ const compareViewDiffTabLabelRegex = new RegExp(
 );
 let count: number = 0;
 let closeRelatedTab: boolean = false;
+let focusLeftSide: boolean = false;
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -35,22 +36,23 @@ const createCompareView = () => {
   const leftUri = Uri.parse(`${scheme}:/${leftName}`);
   const rightName = `${name}${++count}`;
   const rightUri = Uri.parse(`${scheme}:/${rightName}`);
-  window
-    .showTextDocument(rightUri)
-    .then(() =>
-      commands.executeCommand(
-        "vscode.diff",
-        leftUri,
-        rightUri,
-        `${leftName}${arrow}${rightName}`
-      )
+  window.showTextDocument(rightUri).then(() => {
+    commands.executeCommand(
+      "vscode.diff",
+      leftUri,
+      rightUri,
+      `${leftName}${arrow}${rightName}`
     );
+    if (focusLeftSide) {
+      commands.executeCommand("workbench.action.focusFirstSideEditor");
+    }
+  });
 };
 
 const setConfiguration = () => {
-  closeRelatedTab = workspace
-    .getConfiguration(section)
-    .get("closeRelatedTab") as boolean;
+  const configs = workspace.getConfiguration(section);
+  closeRelatedTab = configs.get("closeRelatedTab") as boolean;
+  focusLeftSide = configs.get("focusLeftSide") as boolean;
 };
 
 const subscribeConfigChangedEvent = () => {
